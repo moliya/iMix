@@ -364,6 +364,8 @@ void generateSpamCodeFile(NSString *outDirectory, NSString *mFilePath, GSCSource
     
     // 准备要引入的文件
     NSString *importString = getImportString(hFileContent, mFileContent);
+    // 内部私有类集合
+    NSMutableSet *privateClassNames = [NSMutableSet set];
     
     [matches enumerateObjectsUsingBlock:^(NSTextCheckingResult * _Nonnull impResult, NSUInteger idx, BOOL * _Nonnull stop) {
         NSString *className = [mFileContent substringWithRange:[impResult rangeAtIndex:1]];
@@ -377,6 +379,7 @@ void generateSpamCodeFile(NSString *outDirectory, NSString *mFilePath, GSCSource
             NSString *regexStr = [NSString stringWithFormat:@"\\b%@\\b", className];
             NSRange range = [hFileContent rangeOfString:regexStr options:NSRegularExpressionSearch];
             if (range.location == NSNotFound) {
+                [privateClassNames addObject:className];
                 return;
             }
         }
@@ -415,6 +418,15 @@ void generateSpamCodeFile(NSString *outDirectory, NSString *mFilePath, GSCSource
                 newCategoryName = [NSString stringWithFormat:@"%@%@", categoryName, gOutParameterName.capitalizedString];
                 break;
         }
+        
+        //替换掉含私有类参数的方法
+        [privateClassNames enumerateObjectsUsingBlock:^(id  _Nonnull obj, BOOL * _Nonnull stop) {
+            NSString *replaceString = @"NSString *";
+            NSString *pattern = [NSString stringWithFormat:@"%@\\s*\\*", obj];
+            NSRegularExpression *exp = [[NSRegularExpression alloc] initWithPattern:pattern options:NSRegularExpressionCaseInsensitive error:nil];
+            [exp replaceMatchesInString:hFileMethodsString options:NSMatchingReportProgress range:NSMakeRange(0, hFileMethodsString.length) withTemplate:replaceString];
+            [exp replaceMatchesInString:mFileMethodsString options:NSMatchingReportProgress range:NSMakeRange(0, mFileMethodsString.length) withTemplate:replaceString];
+        }];
         
         NSString *fileName = [NSString stringWithFormat:@"%@+%@.h", className, newCategoryName];
         NSString *fileContent = [NSString stringWithFormat:kHClassFileTemplate, importString, className, newCategoryName, hFileMethodsString];
@@ -785,16 +797,41 @@ void modifyClassNamePrefix(NSMutableString *projectContent, NSString *sourceCode
         NSString *fileName = filePath.lastPathComponent.stringByDeletingPathExtension;
         NSString *fileExtension = filePath.pathExtension;
         NSString *newClassName;
-        if ([fileName hasPrefix:oldName]) {
-            newClassName = [newName stringByAppendingString:[fileName substringFromIndex:oldName.length]];
+        //增加了个新特性，使用下划线’_‘代表空字符串，原前缀是_时则表示全部类都将添加新前缀，新前缀是_时则表示将替换为空字符串
+        NSString *mark = @"_";
+        if ([fileName hasPrefix:oldName] && ![oldName isEqualToString:mark]) {
+            if ([newName isEqualToString:mark]) {
+                //去掉原类名前缀
+                newClassName = [fileName substringFromIndex:oldName.length];
+            } else {
+                //新类名前缀替换原类名前缀
+                newClassName = [newName stringByAppendingString:[fileName substringFromIndex:oldName.length]];
+            }
         } else {
             //处理是category的情况。当是category时，修改+号后面的类名前缀
-            NSString *oldNamePlus = [NSString stringWithFormat:@"+%@",oldName];
+            NSString *oldNamePlus;
+            if ([oldName isEqualToString:mark]) {
+                oldNamePlus = @"+";
+            } else {
+                oldNamePlus = [NSString stringWithFormat:@"+%@",oldName];
+            }
             if ([fileName containsString:oldNamePlus]) {
                 NSMutableString *fileNameStr = [[NSMutableString alloc] initWithString:fileName];
-                [fileNameStr replaceCharactersInRange:[fileName rangeOfString:oldNamePlus] withString:[NSString stringWithFormat:@"+%@",newName]];
+                if ([newName isEqualToString:mark]) {
+                    [fileNameStr replaceCharactersInRange:[fileName rangeOfString:oldNamePlus] withString:@"+"];
+                } else {
+                    [fileNameStr replaceCharactersInRange:[fileName rangeOfString:oldNamePlus] withString:[NSString stringWithFormat:@"+%@",newName]];
+                }
                 newClassName = fileNameStr;
-            }else{
+            } else if ([oldName isEqualToString:mark]) {
+                if ([newName isEqualToString:mark]) {
+                    //保持原有的名称
+                    newClassName = fileName;
+                } else {
+                    //全部添加新类名前缀
+                    newClassName = [newName stringByAppendingString:fileName];
+                }
+            } else {
                 //如果是都不匹配，则保持原有的名称
                 newClassName = fileName;
             }

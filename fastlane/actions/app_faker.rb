@@ -75,27 +75,20 @@ module Fastlane
             #source_tree 代表 The directory to which the path is relative
             #pbxproj文件中都是<group>
             group.set_source_tree('<group>')
-            #删除对垃圾文件的引用代码
+            
             codes = []
             group.files.each do |file|
               if file.path.to_s.end_with?(".h")
                 codes.push("\#import \"#{file.path}\"\n")
               end
             end
+            #删除对垃圾文件的引用代码
             removeImportCodesRecursively(codes, project.main_group)
             #删除旧的垃圾文件
             removeBuildPhaseFilesRecursively(target, group)
             group.clear()
-            #顺便把Frameworks下的Pods_xxx.framework删除
-            # fwGroup = project.main_group['Frameworks']
-            # fwGroup.files.each do |file|
-            #   fwName = file.path.to_s
-            #   if !fwName.start_with?("Pods_") || !fwName.end_with?(".framework")
-            #     next
-            #   end
-            #   #移除引用
-            #   target.frameworks_build_phase.remove_file_reference(file)
-            # end
+            #把Frameworks下的Pods_xxx.framework删除
+            removePodsFramework(target, project.frameworks_group)
             #保存
             project.save
           end
@@ -200,9 +193,6 @@ module Fastlane
 
         #任务完成
         UI.success("任务完成🎯🎯🎯")
-        if File::exist?(File.join(root_dir, 'Podfile'))
-          UI.important("📌请检查并删除项目下Frameworks中无用的Pods_xxx.framework，避免build报错！")
-        end
         if spam_str && !spam_str.empty?
           if !spam_dir
             UI.important("📌垃圾代码文件保存在spam目录下，请手动导入项目中！")
@@ -249,8 +239,22 @@ module Fastlane
           File::delete(file.real_path)
         end
   
-        group.groups.each do |subGroup|
-          removeBuildPhaseFilesRecursively(target, subGroup)
+        group.groups.each do |sub_group|
+          removeBuildPhaseFilesRecursively(target, sub_group)
+        end
+      end
+
+      #删除Pod生成的Pods_xxx.framework
+      def self.removePodsFramework(target, group)
+        group.files.each do |file|
+          #只删除符合条件的文件
+          file_name = file.path.to_s
+          if file_name.start_with?("Pods_") && file_name.end_with?(".framework")
+            #删除framework引用
+            target.frameworks_build_phase.remove_file_reference(file)
+            #如果不调用remove_from_project，pbxproj文件中会残留两个Pods_xxx.framework相关的引用代码
+            file.remove_from_project
+          end
         end
       end
 

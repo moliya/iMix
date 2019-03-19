@@ -61,6 +61,24 @@
             ReferencedContainer = "container:iMix.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "/Users/carefree/Documents/Playground/ios-yjg/ios-yqhh/ios-yjg"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-spamCodeOut /Users/carefree/Documents/SpamCode Log"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-ignoreDirNames Expand"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-modifyClassNamePrefix /Users/carefree/Documents/Playground/ios-yjg/ios-yqhh/ios-yjg.xcodeproj _&gt;_"
+            isEnabled = "NO">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
