@@ -9,10 +9,10 @@
 ##### 使用
 Note: 使用前请先安装fastlane
 
-1. clone代码到本地
+1. clone代码到本地，比如用户目录下
 2. 修改`~/iMix/fastlane/`目录下的`Fastfile`文件，根据注释配置指定的混淆处理
 3. 打开终端，cd到iMix文件目录下，执行`fastlane mix`即可
-4. 后续根据提示决定是否删除项目中旧的Pods_xxx.framework，以及是否手动导入垃圾代码的操作
+4. 后续根据提示决定是否手动导入垃圾代码的操作
 
 app_faker参数说明：
 ```
