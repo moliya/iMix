@@ -72,21 +72,24 @@ module Fastlane
             target = project.targets.first
             #查找group，即存放垃圾代码的文件夹
             group = project.main_group.find_subpath(File.join(cur_name, spam_dir),false)
-            #source_tree 代表 The directory to which the path is relative
-            #pbxproj文件中都是<group>
-            group.set_source_tree('<group>')
-            
-            codes = []
-            group.files.each do |file|
-              if file.path.to_s.end_with?(".h")
-                codes.push("\#import \"#{file.path}\"\n")
+            if group
+              #source_tree 代表 The directory to which the path is relative
+              #pbxproj文件中都是<group>
+              group.set_source_tree('<group>')
+              
+              codes = []
+              group.files.each do |file|
+                if file.path.to_s.end_with?(".h")
+                  codes.push("\#import \"#{file.path}\"\n")
+                end
               end
+              #删除对垃圾文件的引用代码
+              removeImportCodesRecursively(codes, project.main_group)
+              #删除旧的垃圾文件
+              removeBuildPhaseFilesRecursively(target, group)
+              group.clear()
             end
-            #删除对垃圾文件的引用代码
-            removeImportCodesRecursively(codes, project.main_group)
-            #删除旧的垃圾文件
-            removeBuildPhaseFilesRecursively(target, group)
-            group.clear()
+            
             #把Frameworks下的Pods_xxx.framework删除
             removePodsFramework(target, project.frameworks_group)
             #保存
@@ -183,7 +186,9 @@ module Fastlane
           if project
             target = project.targets.first
             #查找group，即存放垃圾代码的文件夹
-            group = project.main_group.find_subpath(File.join(cur_name, spam_dir),true)
+            group = project.main_group.find_subpath(File.join(cur_name, spam_dir), true)
+            group.set_source_tree('<group>')
+            group.set_path(File.join(root_dir, cur_name, spam_dir))
             #添加引用
             addFilesToGroup(project, target, group)
             #保存
