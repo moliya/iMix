@@ -21,13 +21,13 @@ platform :ios do
   	# 混淆文件
   	app_faker(
   		#exec_dir: nil, # 混淆脚本路径（如果不提供，action则会自动在exec文件夹下查找）
-  		proj_dir: "/Users/carefree/Documents/Playground/ios-yjg/ios-yqhh/ios-yjg.xcodeproj", # 项目路径
-  		proj_new_name: "ios-pp", # 重命名项目名
-  		class_old_prefix: "YJG", # 原类名前缀
-  		class_new_prefix: "PP", # 新类名前缀
-  		spam_code_dir: "Expand/Ignore", # 垃圾代码输出路径（如果不提供，action则会自动输出到spam文件夹下）
-  		spam_code_str: "pplog", # 垃圾代码字符串
-  		ignore_dir: "Expand", # 忽略文件夹
+  		proj_dir: "/Users/carefree/Documents/project.xcodeproj", # 项目路径
+  		proj_new_name: "new_project", # 重命名项目名
+  		class_old_prefix: "Old", # 原类名前缀
+  		class_new_prefix: "New", # 新类名前缀
+  		spam_code_dir: nil, # 垃圾代码输出路径（如果不提供，action则会自动输出到spam文件夹下）
+  		spam_code_str: "mylog", # 垃圾代码字符串
+  		ignore_dir: "Pods", # 忽略文件夹
       handle_xassets: true, # 是否处理图片资源
   	)
   end

@@ -249,6 +249,7 @@ int main(int argc, const char * argv[]) {
         }
         if (oldClassNamePrefix && newClassNamePrefix) {
             printf("开始修改类名前缀...\n");
+            printf("处理时间取决于代码文件的数量，请耐心等待☕️\n");
             @autoreleasepool {
                 // 打开工程文件
                 NSError *error = nil;

@@ -64,7 +64,7 @@ module Fastlane
         end
 
         #删除垃圾代码文件夹下可能存在的无用的垃圾代码文件
-        if !spam_dir.empty?
+        if spam_dir && !spam_dir.empty?
           UI.message("清理垃圾代码中...")
           #使用xcodeproj库打开工程文件
           project = Xcodeproj::Project.open(proj_dir)
